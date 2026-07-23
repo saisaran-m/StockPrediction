@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Supervised Machine Learning Stock Intelligence Platform</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Non-Blocking Background Overlay -->
+    <div class="market-bg-overlay"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">AlphaStock <span class="badge-ai">ML Terminal</span></span>
+                    <span class="brand-sub">Institutional Supervised Machine Learning Stock Prediction Engine</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation & Theme Toggle -->
+            <div class="nav-controls">
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" onclick="switchTab('tab-forecast', this)">
+                        <i class="fa-solid fa-chart-area"></i> Forecast & Charts
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('tab-monthly', this)">
+                        <i class="fa-solid fa-calendar-days"></i> Daily Month Forecast
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('tab-future', this)">
+                        <i class="fa-solid fa-crystal-ball"></i> Future Targets
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('tab-models', this)">
+                        <i class="fa-solid fa-brain"></i> Supervised Models
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('tab-backtest', this)">
+                        <i class="fa-solid fa-arrow-trend-up"></i> Backtest Equity
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('tab-explainer', this)">
+                        <i class="fa-solid fa-graduation-cap"></i> How ML Works (Video)
+                    </button>
+                </nav>
+
+                <!-- Theme Toggle Button -->
+                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    <span id="theme-text">Dark Theme</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stock Quote Ticker Bar -->
+        <section class="quote-header glass-card">
+            <div class="company-badge-group">
+                <div class="company-avatar-box" id="comp-avatar-box">
+                    <img id="comp-logo-img" src="https://logo.clearbit.com/google.com" alt="Company Logo" onerror="this.src='https://ui-avatars.com/api/?name=GOOGL&background=6366f1&color=fff&bold=true'">
+                </div>
+                <div class="company-details">
+                    <h2 id="comp-name">Alphabet Inc. (Google)</h2>
+                    <div class="company-meta">
+                        <span class="meta-tag" id="comp-ticker">NASDAQ: GOOGL</span>
+                        <span class="meta-dot">•</span>
+                        <span class="meta-tag" id="comp-sector">Communication Services / Internet & AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-quote-group">
+                <div class="quote-item">
+                    <span class="quote-label">Latest Stock Price</span>
+                    <span class="quote-value" id="quote-price">$0.00</span>
+                    <span class="change-badge positive" id="quote-change">+0.00%</span>
+                </div>
+                <div class="quote-divider"></div>
+                <div class="quote-item highlight">
+                    <span class="quote-label"><i class="fa-solid fa-wand-magic-sparkles text-accent"></i> Supervised ML Next-Day Target</span>
+                    <span class="quote-value text-accent" id="quote-forecast">$0.00</span>
+                    <span class="quote-subtext" id="quote-forecast-sub">Model: Ridge Regression</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Layout -->
+        <main class="dashboard-grid">
+            <!-- Sidebar Controls -->
+            <aside class="glass-card control-panel">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-sliders text-cyan"></i> Real Stock Selection</h3>
+                    <p class="panel-sub">Select verified global corporations or search any ticker symbol</p>
+                </div>
+
+                <form id="predict-form" onsubmit="handlePrediction(event)">
+                    <!-- Company Quick Select Grid with Fail-Safe Logos -->
+                    <label class="form-label">Top Real Corporations</label>
+                    <div class="stock-grid">
+                        <div class="stock-chip active" onclick="selectCompany('GOOGL', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/google.com" onerror="this.src='https://ui-avatars.com/api/?name=G&background=4285f4&color=fff'">
+                            </div>
+                            <span class="chip-symbol">GOOGL</span>
+                            <span class="chip-name">Google</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('AAPL', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/apple.com" onerror="this.src='https://ui-avatars.com/api/?name=A&background=000&color=fff'">
+                            </div>
+                            <span class="chip-symbol">AAPL</span>
+                            <span class="chip-name">Apple</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('NVDA', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/nvidia.com" onerror="this.src='https://ui-avatars.com/api/?name=N&background=76b900&color=fff'">
+                            </div>
+                            <span class="chip-symbol">NVDA</span>
+                            <span class="chip-name">NVIDIA</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('AMZN', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/amazon.com" onerror="this.src='https://ui-avatars.com/api/?name=A&background=ff9900&color=fff'">
+                            </div>
+                            <span class="chip-symbol">AMZN</span>
+                            <span class="chip-name">Amazon</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('TSLA', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/tesla.com" onerror="this.src='https://ui-avatars.com/api/?name=T&background=cc0000&color=fff'">
+                            </div>
+                            <span class="chip-symbol">TSLA</span>
+                            <span class="chip-name">Tesla</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('MSFT', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/microsoft.com" onerror="this.src='https://ui-avatars.com/api/?name=M&background=00a4ef&color=fff'">
+                            </div>
+                            <span class="chip-symbol">MSFT</span>
+                            <span class="chip-name">Microsoft</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('META', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/meta.com" onerror="this.src='https://ui-avatars.com/api/?name=M&background=0668e1&color=fff'">
+                            </div>
+                            <span class="chip-symbol">META</span>
+                            <span class="chip-name">Meta</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('NFLX', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/netflix.com" onerror="this.src='https://ui-avatars.com/api/?name=N&background=e50914&color=fff'">
+                            </div>
+                            <span class="chip-symbol">NFLX</span>
+                            <span class="chip-name">Netflix</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('AMD', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/amd.com" onerror="this.src='https://ui-avatars.com/api/?name=A&background=ed1c24&color=fff'">
+                            </div>
+                            <span class="chip-symbol">AMD</span>
+                            <span class="chip-name">AMD</span>
+                        </div>
+                        <div class="stock-chip" onclick="selectCompany('SPY', this)">
+                            <div class="chip-icon-box">
+                                <img src="https://logo.clearbit.com/ssga.com" onerror="this.src='https://ui-avatars.com/api/?name=S&background=10b981&color=fff'">
+                            </div>
+                            <span class="chip-symbol">SPY</span>
+                            <span class="chip-name">S&P 500</span>
+                        </div>
+                    </div>
+
+                    <!-- Custom Search Input -->
+                    <div class="form-group">
+                        <label for="ticker" class="form-label">Or Type Ticker / Company Name</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="ticker" name="ticker" value="GOOGL" placeholder="e.g. GOOGL, AMZN, Apple, Tesla" required>
+                        </div>
+                    </div>
+
+                    <!-- Historical Time Horizon -->
+                    <div class="form-group">
+                        <label for="period" class="form-label">Historical Time Horizon</label>
+                        <select id="period" name="period">
+                            <option value="1y">1 Year Historical Data</option>
+                            <option value="2y" selected>2 Years Historical Data</option>
+                            <option value="5y">5 Years Historical Data</option>
+                        </select>
+                    </div>
+
+                    <!-- Supervised Learning Task -->
+                    <div class="form-group">
+                        <label for="target_type" class="form-label">Supervised Learning Task</label>
+                        <select id="target_type" name="target_type">
+                            <option value="regression" selected>Regression (Forecast Next-Day Close Price)</option>
+                            <option value="classification">Classification (Predict Direction: Up / Down)</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button type="submit" id="btn-submit" class="btn-primary">
+                        <i class="fa-solid fa-bolt"></i> Run Supervised ML Pipeline
+                    </button>
+                    
+                    <button type="button" class="btn-secondary" onclick="exportDataCSV()">
+                        <i class="fa-solid fa-file-csv text-accent"></i> Download CSV Report File
+                    </button>
+                </form>
+
+                <!-- Plain English CSV Explanation Box -->
+                <div class="csv-explain-box">
+                    <p><i class="fa-solid fa-circle-info text-cyan"></i> <strong>What is the CSV Report?</strong></p>
+                    <p class="csv-explain-sub">The downloaded <code>.CSV</code> file opens in Microsoft Excel or Google Sheets. It contains a clean table with:
+                    <br>• <strong>Actual Stock Prices ($)</strong>
+                    <br>• <strong>Machine Learning Predictions ($)</strong>
+                    <br>• <strong>Price Errors & Indicators (SMA, RSI)</strong>
+                    <br>• <strong>Bullish / Bearish Trading Signals</strong></p>
+                </div>
+            </aside>
+
+            <!-- Main Dynamic Content Area -->
+            <section class="content-area">
+                <!-- TAB 1: FORECAST & CHARTS -->
+                <div id="tab-forecast" class="tab-content active">
+                    <!-- Stat Cards Row -->
+                    <div class="stats-row">
+                        <div class="glass-card stat-card">
+                            <div class="stat-icon-wrapper bg-indigo"><i class="fa-solid fa-award"></i></div>
+                            <div class="stat-details">
+                                <div class="stat-header">Best Supervised Model</div>
+                                <div class="stat-value text-indigo" id="stat-best-model">--</div>
+                                <div class="stat-subtext">Highest Evaluation Score</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card stat-card">
+                            <div class="stat-icon-wrapper bg-emerald"><i class="fa-solid fa-chart-line"></i></div>
+                            <div class="stat-details">
+                                <div class="stat-header">ML Strategy Return</div>
+                                <div class="stat-value text-success" id="stat-strategy-return">-- %</div>
+                                <div class="stat-subtext" id="stat-benchmark-return">Buy & Hold: -- %</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card stat-card">
+                            <div class="stat-icon-wrapper bg-cyan"><i class="fa-solid fa-scale-balanced"></i></div>
+                            <div class="stat-details">
+                                <div class="stat-header">Sharpe Ratio</div>
+                                <div class="stat-value text-cyan" id="stat-sharpe">--</div>
+                                <div class="stat-subtext">Risk-Adjusted Return</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card stat-card">
+                            <div class="stat-icon-wrapper bg-rose"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="stat-details">
+                                <div class="stat-header">Max Drawdown</div>
+                                <div class="stat-value text-danger" id="stat-drawdown">-- %</div>
+                                <div class="stat-subtext" id="stat-win-rate">Win Rate: -- %</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Forecast Chart -->
+                    <div class="glass-card chart-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <h4><i class="fa-solid fa-chart-area text-cyan"></i> Out-of-Sample Predictions vs Actual Stock Price</h4>
+                                <p class="chart-desc">Compares real market closing prices against predictions generated by the top supervised ML algorithm on unseen test data.</p>
+                            </div>
+                            <span class="pill" id="active-ticker-pill">NASDAQ: GOOGL</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="predictionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Oscillators & Feature Importance -->
+                    <div class="charts-row">
+                        <div class="glass-card chart-card">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-wave-square text-indigo"></i> Relative Strength Index (RSI 14)</h4>
+                            </div>
+                            <div class="chart-container small-chart">
+                                <canvas id="rsiChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="glass-card chart-card">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-bars-staggered text-violet"></i> Technical Feature Importances</h4>
+                            </div>
+                            <div class="chart-container small-chart">
+                                <canvas id="featureChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CURRENT MONTH DAILY FORECAST -->
+                <div id="tab-monthly" class="tab-content">
+                    <div class="glass-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <h4><i class="fa-solid fa-calendar-days text-cyan"></i> Current Month Day-by-Day Price Forecast & Daily Change</h4>
+                                <p class="chart-desc" id="month-desc">Predicts daily stock price, dollar increase/decrease amount ($), and directional signal for every trading day of the current month.</p>
+                            </div>
+                        </div>
+
+                        <!-- Month Summary Cards -->
+                        <div class="month-stats-row">
+                            <div class="month-stat-box">
+                                <span class="month-stat-title">Month Forecast Target</span>
+                                <span class="month-stat-val text-cyan" id="month-end-price">$0.00</span>
+                                <span class="month-stat-sub" id="month-name-sub">July 2026</span>
+                            </div>
+                            <div class="month-stat-box">
+                                <span class="month-stat-title">Total Expected Net Change</span>
+                                <span class="month-stat-val text-success" id="month-total-change">+$0.00 (+0.00%)</span>
+                                <span class="month-stat-sub">From Month Open Price</span>
+                            </div>
+                            <div class="month-stat-box">
+                                <span class="month-stat-title">Bullish / Bearish Breakdown</span>
+                                <span class="month-stat-val text-indigo" id="month-up-down">0 Days UP / 0 Days DOWN</span>
+                                <span class="month-stat-sub">Model Direction Distribution</span>
+                            </div>
+                        </div>
+
+                        <!-- Daily Forecast Table -->
+                        <div class="table-responsive" style="margin-top: 1.2rem;">
+                            <table class="custom-table" id="daily-month-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Day of Week</th>
+                                        <th>Predicted Target Price ($)</th>
+                                        <th>Daily Increase / Decrease ($)</th>
+                                        <th>Daily Return %</th>
+                                        <th>Direction Signal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading current month day-by-day predictions...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MULTI-DAY FUTURE TARGET FORECASTS -->
+                <div id="tab-future" class="tab-content">
+                    <div class="glass-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <h4><i class="fa-solid fa-crystal-ball text-cyan"></i> Multi-Day Future Stock Price Horizon Forecast</h4>
+                                <p class="chart-desc">Supervised ML projections for 1-day, 3-day, 5-day, and 7-day future price targets based on current momentum & feature vectors.</p>
+                            </div>
+                        </div>
+
+                        <div class="future-grid">
+                            <div class="future-card">
+                                <div class="future-title">1-Day Target (Tomorrow)</div>
+                                <div class="future-price text-accent" id="future-1d">$0.00</div>
+                                <div class="future-badge" id="future-1d-badge">+0.00%</div>
+                            </div>
+                            <div class="future-card">
+                                <div class="future-title">3-Day Target Horizon</div>
+                                <div class="future-price text-indigo" id="future-3d">$0.00</div>
+                                <div class="future-badge" id="future-3d-badge">+0.00%</div>
+                            </div>
+                            <div class="future-card">
+                                <div class="future-title">5-Day Target Horizon</div>
+                                <div class="future-price text-cyan" id="future-5d">$0.00</div>
+                                <div class="future-badge" id="future-5d-badge">+0.00%</div>
+                            </div>
+                            <div class="future-card">
+                                <div class="future-title">7-Day Target Horizon</div>
+                                <div class="future-price text-success" id="future-7d">$0.00</div>
+                                <div class="future-badge" id="future-7d-badge">+0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: SUPERVISED MODELS -->
+                <div id="tab-models" class="tab-content">
+                    <div class="glass-card table-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <h4><i class="fa-solid fa-brain text-indigo"></i> Supervised Machine Learning Model Evaluation Matrix</h4>
+                                <p class="chart-desc">Evaluation metrics computed strictly on out-of-sample test data using Time-Series Walk-Forward validation.</p>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="custom-table" id="models-table">
+                                <thead>
+                                    <tr>
+                                        <th>Supervised Algorithm</th>
+                                        <th>Mean Absolute Error (MAE)</th>
+                                        <th>Root Mean Sq Error (RMSE)</th>
+                                        <th>R² Score</th>
+                                        <th>Validation Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading model comparison metrics...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: STRATEGY BACKTEST -->
+                <div id="tab-backtest" class="tab-content">
+                    <div class="glass-card chart-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <h4><i class="fa-solid fa-arrow-trend-up text-emerald"></i> Algorithmic Strategy Backtest Equity Growth</h4>
+                                <p class="chart-desc">Simulates portfolio performance starting with $1.00 traded strictly according to Supervised ML buy/hold signals.</p>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="backtestChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: HOW ML WORKS & VIDEO EXPLAINER -->
+                <div id="tab-explainer" class="tab-content">
+                    <div class="glass-card explainer-card full-width">
+                        <div class="explainer-header">
+                            <h3><i class="fa-solid fa-graduation-cap text-cyan"></i> How Supervised Machine Learning Stock Prediction Works</h3>
+                            <p>Understand step-by-step how supervised learning models turn past market prices and math indicators into price forecasts.</p>
+                        </div>
+
+                        <!-- Guaranteed Interactive Animated Video canvas -->
+                        <div class="video-container-wrapper">
+                            <div class="video-card">
+                                <div class="video-header">
+                                    <i class="fa-solid fa-circle-play text-accent"></i>
+                                    <span>Interactive Educational Video Demonstration</span>
+                                </div>
+                                <div class="custom-video-player">
+                                    <canvas id="videoCanvas" width="960" height="450"></canvas>
+                                    <div class="video-controls">
+                                        <button class="v-btn" onclick="toggleVideoPlay()"><i class="fa-solid fa-play" id="v-play-icon"></i> Play / Pause Video</button>
+                                        <span class="v-status" id="v-status-text">Step 1: Ingesting Historical Price Data...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Pipeline Steps -->
+                        <div class="pipeline-grid">
+                            <div class="pipeline-step">
+                                <div class="step-num">01</div>
+                                <h4>Data Collection</h4>
+                                <p>Historical daily prices (Open, High, Low, Close, Volume) are collected from global stock exchanges for real corporations like Alphabet, Apple, and NVIDIA.</p>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-num">02</div>
+                                <h4>Feature Engineering</h4>
+                                <p>34 mathematical technical indicators are computed (Moving Averages SMA 20/50/200, RSI 14, MACD, Volatility, Lags) to build the input matrix $X$.</p>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-num">03</div>
+                                <h4>Supervised Training</h4>
+                                <p>Supervised algorithms (Ridge Regression, Random Forest, XGBoost, SVR) learn non-linear patterns mapping feature matrix $X_t$ to next-day target $Y_{t+1}$.</p>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-num">04</div>
+                                <h4>Evaluation & Backtest</h4>
+                                <p>Models are evaluated out-of-sample using Time-Series Walk-Forward validation to compute MAE, RMSE, $R^2$, and backtest portfolio equity growth.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
